@@ -690,8 +690,26 @@ function renderActiveQueue() {
       <div class="ticket-meta-side">
         <span class="tech-pill">${tech ? `👷 ${tech.Name}` : '⚠️ Unassigned'}</span>
         <span class="sla-timer" data-deadline="${tkt.SLA_Deadline}">Calculating SLA...</span>
+        <button class="btn-resolve-manual" style="font-size:0.7rem; padding: 0.3rem 0.6rem; background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 6px; margin-top: 0.5rem; cursor: pointer; font-weight: 700; width: 100%; transition: all 0.2s ease;">
+          ✓ Resolve Manually
+        </button>
       </div>
     `;
+
+    const resolveBtn = card.querySelector('.btn-resolve-manual');
+    resolveBtn.addEventListener('mouseenter', () => {
+      resolveBtn.style.background = 'var(--accent-emerald)';
+      resolveBtn.style.color = '#000';
+    });
+    resolveBtn.addEventListener('mouseleave', () => {
+      resolveBtn.style.background = 'rgba(16, 185, 129, 0.15)';
+      resolveBtn.style.color = 'var(--accent-emerald)';
+    });
+    resolveBtn.addEventListener('click', () => {
+      if (confirm(`Manually resolve Job #${tkt.Ticket_ID} and release technician?`)) {
+        processDoneResolution(tkt.Ticket_ID, [], "Manually resolved from active queue");
+      }
+    });
 
     queueList.appendChild(card);
   });
