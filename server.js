@@ -45,11 +45,11 @@ const INITIAL_SEED_DB = {
     }
   ],
   Parts_Inventory: [
-    { Part_ID: "PRT-401", Name: "Universal Control Board", Stock_Count: 14, Price: 480.00 },
-    { Part_ID: "PRT-402", Name: "Optical Door Sensor Unit", Stock_Count: 28, Price: 95.00 },
-    { Part_ID: "PRT-403", Name: "Traction Steel Cable (10m)", Stock_Count: 6, Price: 650.00 },
-    { Part_ID: "PRT-404", Name: "Hydraulic Valve Pack", Stock_Count: 11, Price: 310.00 },
-    { Part_ID: "PRT-405", Name: "Emergency Intercom Battery", Stock_Count: 45, Price: 42.00 }
+    { Part_ID: "PRT-401", Name: "Universal Control Board", Stock_Count: 14, Price: 135000.00 },
+    { Part_ID: "PRT-402", Name: "Optical Door Sensor Unit", Stock_Count: 28, Price: 26000.00 },
+    { Part_ID: "PRT-403", Name: "Traction Steel Cable (10m)", Stock_Count: 6, Price: 180000.00 },
+    { Part_ID: "PRT-404", Name: "Hydraulic Valve Pack", Stock_Count: 11, Price: 86000.00 },
+    { Part_ID: "PRT-405", Name: "Emergency Intercom Battery", Stock_Count: 45, Price: 12000.00 }
   ]
 };
 
