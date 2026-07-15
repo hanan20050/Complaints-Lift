@@ -128,6 +128,72 @@ app.post('/api/tickets/resolve', (req, res) => {
   res.json({ success: true, ticket, db, lift, client });
 });
 
+// Simple custom .env file parser for local zero-dependency config loading
+try {
+  const fs = require('fs');
+  const envPath = path.join(__dirname, '.env');
+  if (fs.existsSync(envPath)) {
+    const envLines = fs.readFileSync(envPath, 'utf-8').split('\n');
+    envLines.forEach(line => {
+      const match = line.match(/^\s*([\w\.\-]+)\s*=\s*(.*)?\s*$/);
+      if (match) {
+        const key = match[1];
+        let val = match[2] || '';
+        if (val.length > 0 && val.charAt(0) === '"' && val.charAt(val.length - 1) === '"') {
+          val = val.substring(1, val.length - 1);
+        }
+        process.env[key] = val;
+      }
+    });
+  }
+} catch (e) {
+  console.error("Note: Unable to load local .env config", e.message);
+}
+
+// Secure Veevotech SMS API Proxy
+app.post('/api/sms/send', async (req, res) => {
+  const { receivernum, textmessage } = req.body;
+  if (!receivernum || !textmessage) {
+    return res.status(400).json({ success: false, error: "Missing receivernum or textmessage" });
+  }
+
+  // Sanitize phone number (strip spaces, dashes, parentheses)
+  const cleanNumber = receivernum.replace(/[\s\-\(\)]/g, '');
+  const hash = process.env.VEEVOTECH_HASH || "34dca807396164898ffc2e1e8571992c";
+  const sendernum = process.env.VEEVOTECH_SENDERNUM || "Default";
+
+  console.log(`📡 Forwarding SMS request to Veevotech API for recipient: ${cleanNumber}`);
+
+  try {
+    const response = await fetch('https://api.veevotech.com/v3/sendsms', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        hash: hash,
+        receivernum: cleanNumber,
+        sendernum: sendernum,
+        textmessage: textmessage
+      })
+    });
+
+    let resBody;
+    const contentType = response.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) {
+      resBody = await response.json();
+    } else {
+      resBody = await response.text();
+    }
+
+    console.log(`📡 Veevotech Response received:`, resBody);
+    res.json({ success: true, apiResponse: resBody });
+  } catch (error) {
+    console.error(`❌ Failed to send SMS via Veevotech:`, error.message);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 app.post('/api/reset', (req, res) => {
   // Reset database to initial clean state
   res.json({ success: true, message: "Database reset to initial state" });

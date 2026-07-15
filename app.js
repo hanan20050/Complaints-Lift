@@ -561,9 +561,16 @@ async function handleSmartDispatch() {
   electrician.Status = "On Job";
   currentActiveTechTicketId = newTicketId;
 
-  // FIRE AUTOMATED SMS HANDSHAKE TO SIMULATOR
-  addConsumerMessage(`Automated Dispatch: Lift ticket #${newTicketId} logged for ${activeClientProfile.Name}. Our electrician ${electrician.Name} is en route.\nETA: ${etaMins} mins.`, 'incoming');
-  addElectricianMessage(`NEW JOB DISPATCH [${selectedIssuePriority}]:\nAddress: ${activeLiftProfile.Address}\nLift: ${activeLiftProfile.Ownership_Type} / ${activeLiftProfile.Brand}\nIssue: ${issueText}\nGate Code: #4829`, 'incoming');
+  // FIRE AUTOMATED SMS HANDSHAKE TO SIMULATOR & REAL GATEWAY
+  const consumerMsg = `Automated Dispatch: Lift ticket #${newTicketId} logged for ${activeClientProfile.Name}. Our electrician ${electrician.Name} is en route.\nETA: ${etaMins} mins.`;
+  const techMsg = `NEW JOB DISPATCH [${selectedIssuePriority}]:\nAddress: ${activeLiftProfile.Address}\nLift: ${activeLiftProfile.Ownership_Type} / ${activeLiftProfile.Brand}\nIssue: ${issueText}\nGate Code: #4829`;
+
+  addConsumerMessage(consumerMsg, 'incoming');
+  addElectricianMessage(techMsg, 'incoming');
+
+  // Trigger Real SMS Gateway Calls via Proxy API (runs asynchronously)
+  triggerRealSMS(activeClientProfile.Phone_Number, consumerMsg);
+  triggerRealSMS(electrician.Phone, techMsg);
 
   // Clear Intake
   document.getElementById('issue-dropdown').value = "";
@@ -576,6 +583,25 @@ async function handleSmartDispatch() {
   setTimeout(() => {
     document.querySelector('.tab-btn[data-tab="electrician"]').click();
   }, 1200);
+}
+
+// Function to trigger real SMS via the secured Node.js Express proxy
+async function triggerRealSMS(receivernum, textmessage) {
+  try {
+    const response = await fetch('/api/sms/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ receivernum, textmessage })
+    });
+    const result = await response.json();
+    console.log("📡 Real SMS API response status:", result);
+    return result;
+  } catch (error) {
+    console.warn("⚠️ Standalone mode: SMS simulated locally, Express API server offline.", error.message);
+    return { success: false, error: error.message };
+  }
 }
 
 function addConsumerMessage(text, type) {
@@ -721,7 +747,11 @@ function processDoneResolution(ticketId, partsUsed, notes) {
   const client = appState.Clients.find(c => c.Client_ID === lift.Client_ID) || {};
 
   // Text consumer confirmation
-  addConsumerMessage(`Automated Confirmation: Your lift at ${lift.Address || 'the property'} has been repaired. Ticket #${ticketId} is now closed. Thank you!`, 'incoming');
+  const completionMsg = `Automated Confirmation: Your lift at ${lift.Address || 'the property'} has been repaired. Ticket #${ticketId} is now closed. Thank you!`;
+  addConsumerMessage(completionMsg, 'incoming');
+
+  // Trigger Real SMS Gateway Call via Proxy API
+  triggerRealSMS(client.Phone_Number, completionMsg);
 
   // Reset form parts
   selectedResolutionParts = [];
