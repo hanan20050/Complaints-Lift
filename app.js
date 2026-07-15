@@ -2,25 +2,25 @@
    LIFT-OS | CORE ARCHITECTURAL ENGINE & INTERACTIVE SIMULATOR
    ========================================================================== */
 
-// Initial Seed Data (Fallback & Reset Template)
+// Initial Seed Data (Fallback & Reset Template - Pakistani Context)
 const INITIAL_SEED_DB = {
   Clients: [
-    { Client_ID: "C-101", Name: "Acme Corp (HQ)", Phone_Number: "555-0100", Billing_Address: "100 Industrial Pkwy, Suite 400" },
-    { Client_ID: "C-102", Name: "Highrise Apts", Phone_Number: "555-0200", Billing_Address: "789 Skyline Blvd, Property Mgmt" },
-    { Client_ID: "C-103", Name: "Metro Mall Retail", Phone_Number: "555-0300", Billing_Address: "456 Commerce Way, Accounting" },
-    { Client_ID: "C-104", Name: "City Library", Phone_Number: "555-0400", Billing_Address: "101 Knowledge St, Municipal Dept" }
+    { Client_ID: "C-101", Name: "HBL Tower (HQ)", Phone_Number: "+923034130621", Billing_Address: "I.I. Chundrigar Road, Karachi" },
+    { Client_ID: "C-102", Name: "Centaurus Mall", Phone_Number: "+923034130621", Billing_Address: "Jinnah Avenue, Sector F-8, Islamabad" },
+    { Client_ID: "C-103", Name: "Packages Mall", Phone_Number: "+923034130621", Billing_Address: "Walton Road, Lahore" },
+    { Client_ID: "C-104", Name: "Giga Mall", Phone_Number: "+923034130621", Billing_Address: "DHA Phase 2, GT Road, Rawalpindi" }
   ],
   Lifts: [
-    { Lift_ID: "L-201", Client_ID: "C-101", Ownership_Type: "Internal", Brand: "Otis Gen2", Address: "100 Industrial Pkwy - North Shaft", SLA_Tier: "P2", x: 140, y: 80 },
-    { Lift_ID: "L-202", Client_ID: "C-102", Ownership_Type: "3rd-Party", Brand: "Schindler 3300", Address: "789 Skyline Blvd - Tower A Main", SLA_Tier: "P1", x: 480, y: 130 },
-    { Lift_ID: "L-203", Client_ID: "C-103", Ownership_Type: "3rd-Party", Brand: "Kone MonoSpace", Address: "456 Commerce Way - Atrium Elevator", SLA_Tier: "P1", x: 380, y: 250 },
-    { Lift_ID: "L-204", Client_ID: "C-104", Ownership_Type: "Internal", Brand: "Thyssenkrupp Synergy", Address: "101 Knowledge St - Stack B", SLA_Tier: "P3", x: 210, y: 230 }
+    { Lift_ID: "L-201", Client_ID: "C-101", Ownership_Type: "Internal", Brand: "Otis Gen2", Address: "HBL Tower Karachi - Shaft A", SLA_Tier: "P2", x: 140, y: 80 },
+    { Lift_ID: "L-202", Client_ID: "C-102", Ownership_Type: "3rd-Party", Brand: "Schindler 3300", Address: "Centaurus Mall Islamabad - Atrium 2", SLA_Tier: "P1", x: 480, y: 130 },
+    { Lift_ID: "L-203", Client_ID: "C-103", Ownership_Type: "3rd-Party", Brand: "Kone MonoSpace", Address: "Packages Mall Lahore - Main Entrance", SLA_Tier: "P1", x: 380, y: 250 },
+    { Lift_ID: "L-204", Client_ID: "C-104", Ownership_Type: "Internal", Brand: "Thyssenkrupp Synergy", Address: "Giga Mall Rawalpindi - South Tower", SLA_Tier: "P3", x: 210, y: 230 }
   ],
   Electricians: [
-    { Electrician_ID: "E-301", Name: "Sarah Connor", Phone: "555-9001", Status: "Free", GPS: { x: 180, y: 220, lat: 37.7749, lng: -122.4194 } },
-    { Electrician_ID: "E-302", Name: "Marcus Wright", Phone: "555-9002", Status: "Free", GPS: { x: 520, y: 150, lat: 37.7833, lng: -122.4167 } },
-    { Electrician_ID: "E-303", Name: "Kyle Reese", Phone: "555-9003", Status: "On Job", GPS: { x: 310, y: 410, lat: 37.7690, lng: -122.4480 } },
-    { Electrician_ID: "E-304", Name: "T-800 Unit (Bob)", Phone: "555-9004", Status: "Off Duty", GPS: { x: 110, y: 490, lat: 37.7600, lng: -122.4300 } }
+    { Electrician_ID: "E-301", Name: "Muhammad Ali", Phone: "+923034130621", Status: "Free", GPS: { x: 180, y: 220, lat: 24.8607, lng: 67.0011 } },
+    { Electrician_ID: "E-302", Name: "Usman Ahmed", Phone: "+923034130621", Status: "Free", GPS: { x: 520, y: 150, lat: 33.6844, lng: 73.0479 } },
+    { Electrician_ID: "E-303", Name: "Zainab Bibi", Phone: "+923034130621", Status: "On Job", GPS: { x: 310, y: 410, lat: 31.5204, lng: 74.3587 } },
+    { Electrician_ID: "E-304", Name: "Muhammad Bilal", Phone: "+923034130621", Status: "Off Duty", GPS: { x: 110, y: 490, lat: 33.5651, lng: 73.0169 } }
   ],
   Tickets: [
     {
@@ -29,7 +29,7 @@ const INITIAL_SEED_DB = {
       Electrician_ID: "E-303",
       Priority: "P1",
       Status: "Dispatched",
-      Notes: "Passenger trapped between floors 3 & 4. Intercom active.",
+      Notes: "Passenger trapped between ground & 1st floor. Alarm ringing.",
       Created_At: new Date(Date.now() - 12 * 60 * 1000).toISOString(),
       SLA_Deadline: new Date(Date.now() + 3 * 60 * 1000).toISOString(),
       Parts_Used: []
@@ -189,6 +189,174 @@ function setupEventListeners() {
 
   // Send DONE Button
   document.getElementById('res-send-done-btn').addEventListener('click', handleTechSendDone);
+
+  // Registration Tabs Toggle
+  document.querySelectorAll('.reg-tab').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      document.querySelectorAll('.reg-tab').forEach(b => b.classList.remove('active'));
+      e.target.classList.add('active');
+      const targetTab = e.target.dataset.regTab;
+      document.getElementById('reg-client-form').className = targetTab === 'reg-client' ? 'reg-form-container active' : 'reg-form-container hidden';
+      document.getElementById('reg-tech-form').className = targetTab === 'reg-tech' ? 'reg-form-container active' : 'reg-form-container hidden';
+    });
+  });
+
+  // Pakistani phone number format helper
+  function validatePakistaniPhone(phone) {
+    let cleaned = phone.replace(/[\s\-\(\)]/g, '');
+    if (cleaned.startsWith('03')) {
+      cleaned = '+92' + cleaned.substring(1);
+    } else if (cleaned.startsWith('923')) {
+      cleaned = '+' + cleaned;
+    }
+    const reg = /^\+923\d{9}$/;
+    if (reg.test(cleaned)) return cleaned;
+    return null;
+  }
+
+  // Client & Lift Register Submit Handler
+  document.getElementById('submit-new-client-btn').addEventListener('click', async (e) => {
+    e.preventDefault();
+    const name = document.getElementById('new-client-name').value.trim();
+    const phoneInput = document.getElementById('new-client-phone').value.trim();
+    const address = document.getElementById('new-client-address').value.trim();
+    const brand = document.getElementById('new-lift-brand').value.trim();
+    const ownership = document.getElementById('new-lift-ownership').value;
+    const sla = document.getElementById('new-lift-sla').value;
+
+    if (!name || !phoneInput || !address || !brand) {
+      alert("Please fill in all client and lift details.");
+      return;
+    }
+
+    const validatedPhone = validatePakistaniPhone(phoneInput);
+    if (!validatedPhone) {
+      alert("Invalid Pakistani Mobile Number. Please enter in the format +923XXXXXXXXX or 03XXXXXXXXX.");
+      return;
+    }
+
+    const payload = {
+      Name: name,
+      Phone_Number: validatedPhone,
+      Address: address,
+      Brand: brand,
+      Ownership_Type: ownership,
+      SLA_Tier: sla
+    };
+
+    if (isOnlineSync) {
+      try {
+        const res = await fetch('/api/clients/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          const data = await res.json();
+          appState = data.db;
+        }
+      } catch (err) {
+        console.error("API Error - saving client locally", err);
+      }
+    }
+
+    if (!isOnlineSync) {
+      const Client_ID = `C-${Math.floor(100 + Math.random() * 900)}`;
+      const Lift_ID = `L-${Math.floor(200 + Math.random() * 800)}`;
+      const clientObj = { Client_ID, Name: name, Phone_Number: validatedPhone, Billing_Address: address };
+      const liftObj = {
+        Lift_ID,
+        Client_ID,
+        Ownership_Type: ownership,
+        Brand: brand,
+        Address: address,
+        SLA_Tier: sla,
+        x: Math.floor(50 + Math.random() * 550),
+        y: Math.floor(50 + Math.random() * 220)
+      };
+      appState.Clients.push(clientObj);
+      appState.Lifts.push(liftObj);
+    }
+
+    // Add option to quick client select dynamically
+    const select = document.getElementById('quick-client-select');
+    const opt = document.createElement('option');
+    opt.value = validatedPhone;
+    opt.textContent = `📞 ${name} (${validatedPhone}) - ${ownership}`;
+    select.appendChild(opt);
+
+    alert(`Client "${name}" and Lift "${brand}" registered successfully!`);
+    
+    // Clear inputs
+    document.getElementById('new-client-name').value = "";
+    document.getElementById('new-client-phone').value = "";
+    document.getElementById('new-client-address').value = "";
+    document.getElementById('new-lift-brand').value = "";
+
+    renderAll();
+  });
+
+  // Electrician Register Submit Handler
+  document.getElementById('submit-new-tech-btn').addEventListener('click', async (e) => {
+    e.preventDefault();
+    const name = document.getElementById('new-tech-name').value.trim();
+    const phoneInput = document.getElementById('new-tech-phone').value.trim();
+    const status = document.getElementById('new-tech-status').value;
+
+    if (!name || !phoneInput) {
+      alert("Please fill in all technician details.");
+      return;
+    }
+
+    const validatedPhone = validatePakistaniPhone(phoneInput);
+    if (!validatedPhone) {
+      alert("Invalid Pakistani Mobile Number. Please enter in the format +923XXXXXXXXX or 03XXXXXXXXX.");
+      return;
+    }
+
+    const payload = { Name: name, Phone: validatedPhone, Status: status };
+
+    if (isOnlineSync) {
+      try {
+        const res = await fetch('/api/electricians/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          const data = await res.json();
+          appState = data.db;
+        }
+      } catch (err) {
+        console.error("API Error - saving electrician locally", err);
+      }
+    }
+
+    if (!isOnlineSync) {
+      const Electrician_ID = `E-${Math.floor(300 + Math.random() * 700)}`;
+      const electricianObj = {
+        Electrician_ID,
+        Name: name,
+        Phone: validatedPhone,
+        Status: status,
+        GPS: {
+          x: Math.floor(50 + Math.random() * 550),
+          y: Math.floor(50 + Math.random() * 220),
+          lat: 30.0 + Math.random() * 4,
+          lng: 70.0 + Math.random() * 4
+        }
+      };
+      appState.Electricians.push(electricianObj);
+    }
+
+    alert(`Electrician "${name}" registered successfully!`);
+    
+    // Clear inputs
+    document.getElementById('new-tech-name').value = "";
+    document.getElementById('new-tech-phone').value = "";
+
+    renderAll();
+  });
 
   // DB Tabs
   document.querySelectorAll('.db-tab').forEach(btn => {

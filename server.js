@@ -11,25 +11,25 @@ app.use(express.static(path.join(__dirname)));
 
 const DB_FILE_PATH = process.env.DB_FILE_PATH || path.join(__dirname, 'db.json');
 
-// Initial seed data configuration template
+// Initial seed data configuration template (Pakistani Context)
 const INITIAL_SEED_DB = {
   Clients: [
-    { Client_ID: "C-101", Name: "Acme Corp (HQ)", Phone_Number: "555-0100", Billing_Address: "100 Industrial Pkwy, Suite 400" },
-    { Client_ID: "C-102", Name: "Highrise Apts", Phone_Number: "555-0200", Billing_Address: "789 Skyline Blvd, Property Mgmt" },
-    { Client_ID: "C-103", Name: "Metro Mall Retail", Phone_Number: "555-0300", Billing_Address: "456 Commerce Way, Accounting" },
-    { Client_ID: "C-104", Name: "City Library", Phone_Number: "555-0400", Billing_Address: "101 Knowledge St, Municipal Dept" }
+    { Client_ID: "C-101", Name: "HBL Tower (HQ)", Phone_Number: "+923034130621", Billing_Address: "I.I. Chundrigar Road, Karachi" },
+    { Client_ID: "C-102", Name: "Centaurus Mall", Phone_Number: "+923034130621", Billing_Address: "Jinnah Avenue, Sector F-8, Islamabad" },
+    { Client_ID: "C-103", Name: "Packages Mall", Phone_Number: "+923034130621", Billing_Address: "Walton Road, Lahore" },
+    { Client_ID: "C-104", Name: "Giga Mall", Phone_Number: "+923034130621", Billing_Address: "DHA Phase 2, GT Road, Rawalpindi" }
   ],
   Lifts: [
-    { Lift_ID: "L-201", Client_ID: "C-101", Ownership_Type: "Internal", Brand: "Otis Gen2", Address: "100 Industrial Pkwy - North Shaft", SLA_Tier: "P2" },
-    { Lift_ID: "L-202", Client_ID: "C-102", Ownership_Type: "3rd-Party", Brand: "Schindler 3300", Address: "789 Skyline Blvd - Tower A Main", SLA_Tier: "P1" },
-    { Lift_ID: "L-203", Client_ID: "C-103", Ownership_Type: "3rd-Party", Brand: "Kone MonoSpace", Address: "456 Commerce Way - Atrium Elevator", SLA_Tier: "P1" },
-    { Lift_ID: "L-204", Client_ID: "C-104", Ownership_Type: "Internal", Brand: "Thyssenkrupp Synergy", Address: "101 Knowledge St - Stack B", SLA_Tier: "P3" }
+    { Lift_ID: "L-201", Client_ID: "C-101", Ownership_Type: "Internal", Brand: "Otis Gen2", Address: "HBL Tower Karachi - Shaft A", SLA_Tier: "P2", x: 140, y: 80 },
+    { Lift_ID: "L-202", Client_ID: "C-102", Ownership_Type: "3rd-Party", Brand: "Schindler 3300", Address: "Centaurus Mall Islamabad - Atrium 2", SLA_Tier: "P1", x: 480, y: 130 },
+    { Lift_ID: "L-203", Client_ID: "C-103", Ownership_Type: "3rd-Party", Brand: "Kone MonoSpace", Address: "Packages Mall Lahore - Main Entrance", SLA_Tier: "P1", x: 380, y: 250 },
+    { Lift_ID: "L-204", Client_ID: "C-104", Ownership_Type: "Internal", Brand: "Thyssenkrupp Synergy", Address: "Giga Mall Rawalpindi - South Tower", SLA_Tier: "P3", x: 210, y: 230 }
   ],
   Electricians: [
-    { Electrician_ID: "E-301", Name: "Sarah Connor", Phone: "555-9001", Status: "Free", GPS: { x: 180, y: 220, lat: 37.7749, lng: -122.4194 } },
-    { Electrician_ID: "E-302", Name: "Marcus Wright", Phone: "555-9002", Status: "Free", GPS: { x: 520, y: 150, lat: 37.7833, lng: -122.4167 } },
-    { Electrician_ID: "E-303", Name: "Kyle Reese", Phone: "555-9003", Status: "On Job", GPS: { x: 310, y: 410, lat: 37.7690, lng: -122.4480 } },
-    { Electrician_ID: "E-304", Name: "T-800 Unit (Bob)", Phone: "555-9004", Status: "Off Duty", GPS: { x: 110, y: 490, lat: 37.7600, lng: -122.4300 } }
+    { Electrician_ID: "E-301", Name: "Muhammad Ali", Phone: "+923034130621", Status: "Free", GPS: { x: 180, y: 220, lat: 24.8607, lng: 67.0011 } },
+    { Electrician_ID: "E-302", Name: "Usman Ahmed", Phone: "+923034130621", Status: "Free", GPS: { x: 520, y: 150, lat: 33.6844, lng: 73.0479 } },
+    { Electrician_ID: "E-303", Name: "Zainab Bibi", Phone: "+923034130621", Status: "On Job", GPS: { x: 310, y: 410, lat: 31.5204, lng: 74.3587 } },
+    { Electrician_ID: "E-304", Name: "Muhammad Bilal", Phone: "+923034130621", Status: "Off Duty", GPS: { x: 110, y: 490, lat: 33.5651, lng: 73.0169 } }
   ],
   Tickets: [
     {
@@ -38,7 +38,7 @@ const INITIAL_SEED_DB = {
       Electrician_ID: "E-303",
       Priority: "P1",
       Status: "Dispatched",
-      Notes: "Passenger trapped between floors 3 & 4. Intercom active.",
+      Notes: "Passenger trapped between ground & 1st floor. Alarm ringing.",
       Created_At: new Date(Date.now() - 12 * 60 * 1000).toISOString(),
       SLA_Deadline: new Date(Date.now() + 3 * 60 * 1000).toISOString(),
       Parts_Used: []
@@ -236,8 +236,61 @@ app.post('/api/sms/send', async (req, res) => {
   }
 });
 
+app.post('/api/clients/create', (req, res) => {
+  const { Name, Phone_Number, Billing_Address, Brand, Address, Ownership_Type, SLA_Tier } = req.body;
+  if (!Name || !Phone_Number) {
+    return res.status(400).json({ error: "Missing Name or Phone Number" });
+  }
+
+  const Client_ID = `C-${Math.floor(100 + Math.random() * 900)}`;
+  const Lift_ID = `L-${Math.floor(200 + Math.random() * 800)}`;
+
+  const clientObj = { Client_ID, Name, Phone_Number, Billing_Address: Billing_Address || Address };
+  const liftObj = {
+    Lift_ID,
+    Client_ID,
+    Ownership_Type: Ownership_Type || "3rd-Party",
+    Brand: Brand || "Custom Lift",
+    Address: Address || Billing_Address,
+    SLA_Tier: SLA_Tier || "P2",
+    x: Math.floor(50 + Math.random() * 550),
+    y: Math.floor(50 + Math.random() * 220)
+  };
+
+  db.Clients.push(clientObj);
+  db.Lifts.push(liftObj);
+  saveDatabase();
+
+  res.json({ success: true, client: clientObj, lift: liftObj, db });
+});
+
+app.post('/api/electricians/create', (req, res) => {
+  const { Name, Phone, Status } = req.body;
+  if (!Name || !Phone) {
+    return res.status(400).json({ error: "Missing Name or Phone" });
+  }
+
+  const Electrician_ID = `E-${Math.floor(300 + Math.random() * 700)}`;
+  const electricianObj = {
+    Electrician_ID,
+    Name,
+    Phone,
+    Status: Status || "Free",
+    GPS: {
+      x: Math.floor(50 + Math.random() * 550),
+      y: Math.floor(50 + Math.random() * 220),
+      lat: 30.0 + Math.random() * 4,
+      lng: 70.0 + Math.random() * 4
+    }
+  };
+
+  db.Electricians.push(electricianObj);
+  saveDatabase();
+
+  res.json({ success: true, electrician: electricianObj, db });
+});
+
 app.post('/api/reset', (req, res) => {
-  // Reset database to initial clean state template and persist
   const fs = require('fs');
   try {
     if (fs.existsSync(DB_FILE_PATH)) {

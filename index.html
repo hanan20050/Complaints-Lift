@@ -79,13 +79,13 @@
                 <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 </svg>
-                <input type="text" id="phone-search" placeholder="Enter phone e.g. 555-0200..." autocomplete="off">
+                <input type="text" id="phone-search" placeholder="Enter phone e.g. +923034130621..." autocomplete="off">
                 <select id="quick-client-select" class="quick-dropdown">
                   <option value="">⚡ Quick Caller Demo...</option>
-                  <option value="555-0200">📞 Highrise Apts (555-0200) - 3rd-Party</option>
-                  <option value="555-0100">📞 Acme Corp HQ (555-0100) - Internal</option>
-                  <option value="555-0300">📞 Metro Mall (555-0300) - 3rd-Party</option>
-                  <option value="555-0400">📞 City Library (555-0400) - Internal</option>
+                  <option value="+923034130621">📞 HBL Tower (+923034130621) - Internal</option>
+                  <option value="+923034130621">📞 Centaurus Mall (+923034130621) - 3rd-Party</option>
+                  <option value="+923034130621">📞 Packages Mall (+923034130621) - 3rd-Party</option>
+                  <option value="+923034130621">📞 Giga Mall (+923034130621) - Internal</option>
                 </select>
               </div>
             </div>
@@ -267,6 +267,96 @@
                 <div id="res-cache-notice" class="cache-notice hidden">
                   ⚠️ Offline! SMS cached on device. Reconnect signal to auto-transmit.
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- REGISTER NEW DATA PANEL -->
+        <div class="registration-panel zone-card">
+          <div class="zone-header">
+            <div class="zone-title">
+              <span class="zone-number">NEW DATA</span>
+              <h2>Register New Resource</h2>
+            </div>
+            <div class="toggle-tabs reg-tabs">
+              <button class="tab-btn reg-tab active" data-reg-tab="reg-client">Add Client & Lift</button>
+              <button class="tab-btn reg-tab" data-reg-tab="reg-tech">Add Electrician</button>
+            </div>
+          </div>
+
+          <!-- CLIENT & LIFT REGISTRATION FORM -->
+          <div id="reg-client-form" class="reg-form-container active">
+            <div class="form-row-grid">
+              <div class="form-group">
+                <label for="new-client-name">Client Name</label>
+                <input type="text" id="new-client-name" placeholder="e.g. Lucky One Mall" required>
+              </div>
+              <div class="form-group">
+                <label for="new-client-phone">Pakistani Mobile (+92...)</label>
+                <input type="text" id="new-client-phone" placeholder="e.g. +923451234567" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="new-client-address">Physical Address</label>
+              <input type="text" id="new-client-address" placeholder="e.g. Rashid Minhas Rd, Karachi" required>
+            </div>
+            <div class="form-row-grid">
+              <div class="form-group">
+                <label for="new-lift-brand">Lift Brand / Model</label>
+                <input type="text" id="new-lift-brand" placeholder="e.g. Schindler 3300" required>
+              </div>
+              <div class="form-group">
+                <label for="new-lift-ownership">Ownership Type</label>
+                <select id="new-lift-ownership" class="issue-select" style="opacity:1; cursor:pointer;">
+                  <option value="3rd-Party">3rd-Party (Billable)</option>
+                  <option value="Internal">Internal (Warranty)</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row-grid" style="grid-template-columns: 1fr 1.2fr; align-items: flex-end; gap: 1rem; margin-top:0.75rem;">
+              <div class="form-group">
+                <label for="new-lift-sla">SLA Tier</label>
+                <select id="new-lift-sla" class="issue-select" style="opacity:1; cursor:pointer;">
+                  <option value="P1">P1 Gold (15m SLA)</option>
+                  <option value="P2">P2 Silver (30m SLA)</option>
+                  <option value="P3">P3 Bronze (4h SLA)</option>
+                  <option value="P4">P4 Basic (24h SLA)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <button id="submit-new-client-btn" class="btn primary-dispatch-btn" style="height: 40px; font-size:0.85rem;">
+                  <span>➕ Register Client & Lift</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ELECTRICIAN REGISTRATION FORM -->
+          <div id="reg-tech-form" class="reg-form-container hidden">
+            <div class="form-row-grid">
+              <div class="form-group">
+                <label for="new-tech-name">Electrician Full Name</label>
+                <input type="text" id="new-tech-name" placeholder="e.g. Usman Ahmed" required>
+              </div>
+              <div class="form-group">
+                <label for="new-tech-phone">Mobile Number (+92...)</label>
+                <input type="text" id="new-tech-phone" placeholder="e.g. +923168887776" required>
+              </div>
+            </div>
+            <div class="form-row-grid" style="grid-template-columns: 1.2fr 1fr; align-items: flex-end; gap: 1rem; margin-top:0.75rem;">
+              <div class="form-group">
+                <label for="new-tech-status">Initial Status</label>
+                <select id="new-tech-status" class="issue-select" style="opacity:1; cursor:pointer;">
+                  <option value="Free">Free (Available)</option>
+                  <option value="Off Duty">Off Duty</option>
+                  <option value="On Job">On Job</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <button id="submit-new-tech-btn" class="btn primary-dispatch-btn" style="height: 40px; font-size:0.85rem; background: linear-gradient(135deg, var(--accent-purple), #6d28d9); box-shadow: 0 4px 15px rgba(139, 92, 246, 0.25);">
+                  <span>➕ Register Tech</span>
+                </button>
               </div>
             </div>
           </div>
