@@ -9,8 +9,10 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname)));
 
-// Core Relational Database (In-Memory Simulation for Render.com & Local)
-let db = {
+const DB_FILE_PATH = process.env.DB_FILE_PATH || path.join(__dirname, 'db.json');
+
+// Initial seed data configuration template
+const INITIAL_SEED_DB = {
   Clients: [
     { Client_ID: "C-101", Name: "Acme Corp (HQ)", Phone_Number: "555-0100", Billing_Address: "100 Industrial Pkwy, Suite 400" },
     { Client_ID: "C-102", Name: "Highrise Apts", Phone_Number: "555-0200", Billing_Address: "789 Skyline Blvd, Property Mgmt" },
@@ -51,6 +53,43 @@ let db = {
   ]
 };
 
+// Core Relational Database (Simulated persistence for Render.com & Local)
+let db = JSON.parse(JSON.stringify(INITIAL_SEED_DB));
+
+// Database persistence read/write managers
+function loadDatabase() {
+  try {
+    const fs = require('fs');
+    if (fs.existsSync(DB_FILE_PATH)) {
+      const fileData = fs.readFileSync(DB_FILE_PATH, 'utf-8');
+      db = JSON.parse(fileData);
+      console.log(`💾 Relational database successfully loaded from: ${DB_FILE_PATH}`);
+    } else {
+      console.log(`💾 Database file not found. Bootstrapping with default demo seed data...`);
+      saveDatabase();
+    }
+  } catch (err) {
+    console.error("❌ Failed to read database from file. Falling back to memory state:", err.message);
+  }
+}
+
+function saveDatabase() {
+  try {
+    const fs = require('fs');
+    const dir = path.dirname(DB_FILE_PATH);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.writeFileSync(DB_FILE_PATH, JSON.stringify(db, null, 2), 'utf-8');
+    console.log(`💾 Relational database state persisted to: ${DB_FILE_PATH}`);
+  } catch (err) {
+    console.error("❌ Failed to save database to disk:", err.message);
+  }
+}
+
+// Bootstrap state on launch
+loadDatabase();
+
 // API Endpoints
 app.get('/api/state', (req, res) => {
   res.json({ success: true, db });
@@ -78,6 +117,7 @@ app.post('/api/tickets/create', (req, res) => {
   };
 
   db.Tickets.unshift(ticket);
+  saveDatabase();
   res.json({ success: true, ticket, db });
 });
 
@@ -94,6 +134,7 @@ app.post('/api/tickets/dispatch', (req, res) => {
   ticket.Status = "Dispatched";
   electrician.Status = "On Job";
 
+  saveDatabase();
   res.json({ success: true, ticket, electrician, db });
 });
 
@@ -125,6 +166,7 @@ app.post('/api/tickets/resolve', (req, res) => {
   const lift = db.Lifts.find(l => l.Lift_ID === ticket.Lift_ID);
   const client = lift ? db.Clients.find(c => c.Client_ID === lift.Client_ID) : null;
 
+  saveDatabase();
   res.json({ success: true, ticket, db, lift, client });
 });
 
@@ -195,8 +237,16 @@ app.post('/api/sms/send', async (req, res) => {
 });
 
 app.post('/api/reset', (req, res) => {
-  // Reset database to initial clean state
-  res.json({ success: true, message: "Database reset to initial state" });
+  // Reset database to initial clean state template and persist
+  const fs = require('fs');
+  try {
+    if (fs.existsSync(DB_FILE_PATH)) {
+      fs.unlinkSync(DB_FILE_PATH);
+    }
+  } catch (e) {}
+  db = JSON.parse(JSON.stringify(INITIAL_SEED_DB));
+  saveDatabase();
+  res.json({ success: true, message: "Database reset to initial state", db });
 });
 
 app.listen(PORT, () => {
