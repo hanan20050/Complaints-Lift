@@ -1,0 +1,18 @@
+# Render Blueprint Specification (render.yaml)
+# For more information, see: https://render.com/docs/blueprints
+
+services:
+  - type: web
+    name: complaints-lift
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: PORT
+        value: 3000
+      - key: VEEVOTECH_HASH
+        sync: false
+        placeholder: "Enter your Veevotech API Hash (e.g. 34dca807396164898ffc2e1e8571992c)"
+      - key: VEEVOTECH_SENDERNUM
+        value: Default
