@@ -170,6 +170,16 @@ app.post('/api/tickets/resolve', (req, res) => {
   res.json({ success: true, ticket, db, lift, client });
 });
 
+app.post('/api/tickets/status', (req, res) => {
+  const { Ticket_ID, Status } = req.body;
+  const ticket = db.Tickets.find(t => t.Ticket_ID === Ticket_ID);
+  if (!ticket) return res.status(404).json({ error: "Ticket not found" });
+
+  ticket.Status = Status;
+  saveDatabase();
+  res.json({ success: true, ticket, db });
+});
+
 // Simple custom .env file parser for local zero-dependency config loading
 try {
   const fs = require('fs');

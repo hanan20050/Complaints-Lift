@@ -513,11 +513,35 @@ function renderActiveQueue() {
     const card = document.createElement('div');
     card.className = `ticket-card ${tkt.Priority === 'P1' ? 'priority-p1' : ''}`;
     
+    const status = tkt.Status || 'Dispatched';
+    let actionButtonHtml = "";
+
+    if (status === 'Dispatched') {
+      actionButtonHtml = `
+        <button class="btn-transition-status" data-status="EnRoute" style="font-size:0.7rem; padding: 0.3rem 0.6rem; background: rgba(37, 99, 235, 0.15); color: var(--accent-blue); border: 1px solid rgba(37, 99, 235, 0.3); border-radius: 6px; margin-top: 0.5rem; cursor: pointer; font-weight: 700; width: 100%; transition: all 0.2s ease;">
+          ⚡ Mark En Route
+        </button>
+      `;
+    } else if (status === 'EnRoute') {
+      actionButtonHtml = `
+        <button class="btn-transition-status" data-status="InProgress" style="font-size:0.7rem; padding: 0.3rem 0.6rem; background: rgba(217, 119, 6, 0.15); color: var(--accent-amber); border: 1px solid rgba(217, 119, 6, 0.3); border-radius: 6px; margin-top: 0.5rem; cursor: pointer; font-weight: 700; width: 100%; transition: all 0.2s ease;">
+          ⚡ Mark In Progress
+        </button>
+      `;
+    } else if (status === 'InProgress') {
+      actionButtonHtml = `
+        <button class="btn-resolve-manual" style="font-size:0.7rem; padding: 0.3rem 0.6rem; background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 6px; margin-top: 0.5rem; cursor: pointer; font-weight: 700; width: 100%; transition: all 0.2s ease;">
+          ✓ Resolve Manually
+        </button>
+      `;
+    }
+
     card.innerHTML = `
       <div class="ticket-main">
         <div class="ticket-top">
           <span class="ticket-id">#${tkt.Ticket_ID}</span>
           <span class="priority-pill ${tkt.Priority}">${tkt.Priority}</span>
+          <span class="status-pill ${status}">${status}</span>
           <span class="ticket-client">${client.Name || 'Unknown Client'} (${lift.Lift_ID || ''})</span>
         </div>
         <p class="ticket-notes">Address: ${lift.Address || 'N/A'}</p>
@@ -526,26 +550,34 @@ function renderActiveQueue() {
       <div class="ticket-meta-side">
         <span class="tech-pill">${tech ? `👷 ${tech.Name}` : '⚠️ Unassigned'}</span>
         <span class="sla-timer" data-deadline="${tkt.SLA_Deadline}">Calculating SLA...</span>
-        <button class="btn-resolve-manual" style="font-size:0.7rem; padding: 0.3rem 0.6rem; background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 6px; margin-top: 0.5rem; cursor: pointer; font-weight: 700; width: 100%; transition: all 0.2s ease;">
-          ✓ Resolve Manually
-        </button>
+        ${actionButtonHtml}
       </div>
     `;
 
+    const transitionBtn = card.querySelector('.btn-transition-status');
+    if (transitionBtn) {
+      transitionBtn.addEventListener('click', () => {
+        const targetStatus = transitionBtn.getAttribute('data-status');
+        updateTicketStatus(tkt.Ticket_ID, targetStatus);
+      });
+    }
+
     const resolveBtn = card.querySelector('.btn-resolve-manual');
-    resolveBtn.addEventListener('mouseenter', () => {
-      resolveBtn.style.background = 'var(--accent-emerald)';
-      resolveBtn.style.color = '#000';
-    });
-    resolveBtn.addEventListener('mouseleave', () => {
-      resolveBtn.style.background = 'rgba(16, 185, 129, 0.15)';
-      resolveBtn.style.color = 'var(--accent-emerald)';
-    });
-    resolveBtn.addEventListener('click', () => {
-      if (confirm(`Manually resolve Job #${tkt.Ticket_ID} and release technician?`)) {
-        processDoneResolution(tkt.Ticket_ID, [], "Manually resolved from active queue");
-      }
-    });
+    if (resolveBtn) {
+      resolveBtn.addEventListener('mouseenter', () => {
+        resolveBtn.style.background = 'var(--accent-emerald)';
+        resolveBtn.style.color = '#000';
+      });
+      resolveBtn.addEventListener('mouseleave', () => {
+        resolveBtn.style.background = 'rgba(16, 185, 129, 0.15)';
+        resolveBtn.style.color = 'var(--accent-emerald)';
+      });
+      resolveBtn.addEventListener('click', () => {
+        if (confirm(`Manually resolve Job #${tkt.Ticket_ID} and release technician?`)) {
+          processDoneResolution(tkt.Ticket_ID, [], "Manually resolved from active queue");
+        }
+      });
+    }
 
     queueList.appendChild(card);
   });
@@ -900,4 +932,47 @@ function renderDbTable(tableName) {
       tab.textContent = `${labelName} (${appState[tbl].length})`;
     }
   });
+}
+
+async function updateTicketStatus(ticketId, newStatus) {
+  const ticket = appState.Tickets.find(t => t.Ticket_ID === ticketId);
+  if (!ticket) return;
+
+  ticket.Status = newStatus;
+
+  // Persist state to backend if online sync is enabled
+  if (isOnlineSync) {
+    try {
+      const res = await fetch('/api/tickets/status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ Ticket_ID: ticketId, Status: newStatus })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        appState = data.db;
+      }
+    } catch (e) {
+      console.error("API error while updating status", e);
+    }
+  }
+
+  // Send SMS update to client
+  const lift = appState.Lifts.find(l => l.Lift_ID === ticket.Lift_ID) || {};
+  const client = appState.Clients.find(c => c.Client_ID === lift.Client_ID) || {};
+  const tech = appState.Electricians.find(e => e.Electrician_ID === ticket.Electrician_ID) || { Name: "Technician" };
+
+  let updateMsg = "";
+  if (newStatus === "EnRoute") {
+    updateMsg = `Automated Update: Lift ticket #${ticketId} status changed to EN ROUTE. Technician ${tech.Name} is travelling to your location.`;
+  } else if (newStatus === "InProgress") {
+    updateMsg = `Automated Update: Lift ticket #${ticketId} status changed to IN PROGRESS. Technician ${tech.Name} has arrived on-site and is working on the issue.`;
+  }
+
+  if (updateMsg && client.Phone_Number) {
+    addConsumerMessage(updateMsg, 'incoming');
+    triggerRealSMS(client.Phone_Number, updateMsg);
+  }
+
+  renderAll();
 }

@@ -3,32 +3,32 @@
    ========================================================================== */
 
 :root {
-  --bg-primary: #090d16;
-  --bg-surface: #111726;
-  --bg-surface-elevated: #1a2236;
-  --bg-surface-glass: rgba(26, 34, 54, 0.65);
-  --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-focus: rgba(59, 130, 246, 0.5);
+  --bg-primary: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-surface-elevated: #f1f5f9;
+  --bg-surface-glass: #ffffff;
+  --border-subtle: #cbd5e1;
+  --border-focus: #2563eb;
 
-  /* Curated HSL Accent Colors */
-  --accent-blue: #3b82f6;
-  --accent-blue-glow: rgba(59, 130, 246, 0.25);
-  --accent-emerald: #10b981;
-  --accent-emerald-glow: rgba(16, 185, 129, 0.25);
-  --accent-amber: #f59e0b;
-  --accent-amber-glow: rgba(245, 158, 11, 0.25);
-  --accent-crimson: #ef4444;
-  --accent-crimson-glow: rgba(239, 68, 68, 0.35);
-  --accent-purple: #8b5cf6;
+  /* Corporate Accent Colors */
+  --accent-blue: #2563eb;
+  --accent-blue-glow: rgba(37, 99, 235, 0.08);
+  --accent-emerald: #16a34a;
+  --accent-emerald-glow: rgba(22, 163, 74, 0.08);
+  --accent-amber: #d97706;
+  --accent-amber-glow: rgba(217, 119, 6, 0.08);
+  --accent-crimson: #dc2626;
+  --accent-crimson-glow: rgba(220, 38, 38, 0.08);
+  --accent-purple: #4f46e5;
 
   /* Typography Colors */
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
+  --text-main: #0f172a;
+  --text-muted: #475569;
   --text-dim: #64748b;
 
   --font-main: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-heading: 'Outfit', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-heading: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
 }
 
 * {
@@ -44,9 +44,6 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   line-height: 1.5;
-  background-image: 
-    radial-gradient(at 10% 20%, rgba(59, 130, 246, 0.06) 0px, transparent 50%),
-    radial-gradient(at 90% 80%, rgba(139, 92, 246, 0.06) 0px, transparent 50%);
 }
 
 /* Scrollbars */
@@ -234,14 +231,14 @@ body {
 .zone-card {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
-  border-radius: 16px;
+  border-radius: 12px;
   padding: 1.5rem;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-  transition: border-color 0.2s ease;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05);
+  transition: all 0.2s ease;
 }
 
 .zone-card:hover {
-  border-color: rgba(255, 255, 255, 0.15);
+  border-color: #94a3b8;
 }
 
 .zone-header {
@@ -645,8 +642,7 @@ body {
 
 .ticket-card.priority-p1 {
   border-left-color: var(--accent-crimson);
-  background: linear-gradient(90deg, rgba(239, 68, 68, 0.1), var(--bg-surface-elevated));
-  box-shadow: 0 0 20px rgba(239, 68, 68, 0.15);
+  background: #fef2f2;
 }
 
 .ticket-main {
@@ -675,10 +671,36 @@ body {
   border-radius: 4px;
   text-transform: uppercase;
 }
-.priority-pill.P1 { background: var(--accent-crimson); color: #fff; animation: pulse 1s infinite; }
-.priority-pill.P2 { background: var(--accent-amber); color: #000; }
+.priority-pill.P1 { background: var(--accent-crimson); color: #fff; }
+.priority-pill.P2 { background: var(--accent-amber); color: #fff; }
 .priority-pill.P3 { background: var(--accent-blue); color: #fff; }
 .priority-pill.P4 { background: var(--bg-surface); border: 1px solid var(--border-subtle); color: var(--text-muted); }
+
+/* Ticket Status Pills */
+.status-pill {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+}
+.status-pill.Dispatched {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1e40af;
+}
+.status-pill.EnRoute {
+  background: #fff7ed;
+  border-color: #fed7aa;
+  color: #9a3412;
+}
+.status-pill.InProgress {
+  background: #f5f3ff;
+  border-color: #ddd6fe;
+  color: #5b21b6;
+}
+
 
 .ticket-client {
   font-weight: 600;
