@@ -456,30 +456,7 @@ function handlePhoneSearch(phoneQuery) {
   document.getElementById('tech-select-dropdown').value = "";
 }
 
-function autoPickNearestFreeTech(lift) {
-  const freeTechs = appState.Electricians.filter(e => e.Status === 'Free');
-  if (freeTechs.length === 0) {
-    selectedElectricianId = null;
-    return;
-  }
 
-  let nearestTech = null;
-  let minDist = Infinity;
-
-  freeTechs.forEach(tech => {
-    const dist = Math.hypot((tech.GPS?.x || 100) - (lift.x || 200), (tech.GPS?.y || 100) - (lift.y || 150));
-    if (dist < minDist) {
-      minDist = dist;
-      nearestTech = tech;
-    }
-  });
-
-  if (nearestTech) {
-    selectedElectricianId = nearestTech.Electrician_ID;
-    renderElectricianRoster();
-    renderGeospatialMap();
-  }
-}
 
 /* ==========================================================================
    ZONE 2: TECH DROPDOWN & STATUS
@@ -614,10 +591,6 @@ async function handleSmartDispatch() {
   const issueText = document.getElementById('issue-dropdown').value;
   const electrician = appState.Electricians.find(e => e.Electrician_ID === selectedElectricianId);
 
-  // Calculate ETA
-  const distUnits = Math.hypot((electrician.GPS?.x || 150) - activeLiftProfile.x, (electrician.GPS?.y || 150) - activeLiftProfile.y);
-  const etaMins = Math.max(3, Math.round(distUnits / 12));
-
   // Create Ticket & Dispatch
   const newTicketId = `TKT-${Math.floor(1000 + Math.random() * 9000)}`;
   const slaMins = selectedIssuePriority === 'P1' ? 15 : selectedIssuePriority === 'P2' ? 30 : selectedIssuePriority === 'P3' ? 240 : 1440;
@@ -650,7 +623,7 @@ async function handleSmartDispatch() {
   currentActiveTechTicketId = newTicketId;
 
   // FIRE AUTOMATED SMS HANDSHAKE TO SIMULATOR & REAL GATEWAY
-  const consumerMsg = `Automated Dispatch: Lift ticket #${newTicketId} logged for ${activeClientProfile.Name}. Our electrician ${electrician.Name} is en route.\nETA: ${etaMins} mins.`;
+  const consumerMsg = `Automated Dispatch: Lift ticket #${newTicketId} logged for ${activeClientProfile.Name}. Our electrician ${electrician.Name} has been assigned and is en route.`;
   const techMsg = `NEW JOB DISPATCH [${selectedIssuePriority}]:\nAddress: ${activeLiftProfile.Address}\nLift: ${activeLiftProfile.Ownership_Type} / ${activeLiftProfile.Brand}\nIssue: ${issueText}\nGate Code: #4829`;
 
   addConsumerMessage(consumerMsg, 'incoming');
