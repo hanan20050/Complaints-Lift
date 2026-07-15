@@ -101,6 +101,14 @@
                 <option value="Routine Inspection" data-priority="P4">📋 Routine Maintenance (Priority 4 - Standard)</option>
               </select>
             </div>
+
+            <!-- Manual Technician Selection Dropbox -->
+            <div class="input-group tech-group">
+              <label for="tech-select-dropdown">Assign Technician (Manual Selection)</label>
+              <select id="tech-select-dropdown" class="issue-select" disabled>
+                <option value="">-- Select Free Technician --</option>
+              </select>
+            </div>
           </div>
 
           <!-- Auto-Filled Asset Profile Card -->
@@ -137,38 +145,6 @@
           </div>
         </div>
 
-        <!-- ZONE 2: LIVE ELECTRICIAN GEOSPATIAL MAP -->
-        <div class="zone-card zone-map">
-          <div class="zone-header">
-            <div class="zone-title">
-              <span class="zone-number">ZONE 2</span>
-              <h2>Live Electrician Geospatial Map</h2>
-            </div>
-            <div class="map-legend">
-              <span class="legend-item"><i class="dot green"></i> Free (Ready)</span>
-              <span class="legend-item"><i class="dot yellow"></i> On Job</span>
-              <span class="legend-item"><i class="dot red"></i> Off Duty</span>
-              <span class="legend-item"><i class="pin blue"></i> Lift Asset</span>
-            </div>
-          </div>
-
-          <div class="map-container-wrapper">
-            <div class="canvas-map-box">
-              <!-- SVG Interactive City Map -->
-              <svg id="geospatial-map" viewBox="0 0 650 320" class="map-svg">
-                <!-- Grid background & streets generated via JS/CSS -->
-              </svg>
-              <div class="map-overlay-info" id="map-overlay-info">
-                <span>Select a client in Zone 1 to calculate distance & ETA for field teams.</span>
-              </div>
-            </div>
-
-            <!-- Field Team Roster Cards -->
-            <div class="electrician-roster" id="electrician-roster-list">
-              <!-- Dynamically populated via JS -->
-            </div>
-          </div>
-        </div>
 
         <!-- ZONE 3: ACTIVE QUEUE -->
         <div class="zone-card zone-queue">

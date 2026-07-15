@@ -145,23 +145,33 @@ function setupEventListeners() {
     const selectedOpt = e.target.options[e.target.selectedIndex];
     selectedIssuePriority = selectedOpt.getAttribute('data-priority') || null;
     const priDisplay = document.getElementById('profile-priority-display');
+    const techSelectDropdown = document.getElementById('tech-select-dropdown');
+    
     if (selectedIssuePriority) {
       priDisplay.textContent = `${selectedIssuePriority} (${e.target.value})`;
       priDisplay.className = `detail-value priority-display ${selectedIssuePriority === 'P1' ? 'p1-alert' : ''}`;
       
       // Manual selection flow: clear selected technician and prompt manual pick
       selectedElectricianId = null;
-      document.getElementById('map-overlay-info').innerHTML = "👉 <strong>Select a Free Technician (Green Dot)</strong> from the map or roster list to assign.";
-      renderElectricianRoster();
-      renderGeospatialMap();
+      techSelectDropdown.disabled = false;
+      populateTechDropdown();
     } else {
       priDisplay.textContent = "-- Select Issue --";
       selectedElectricianId = null;
-      document.getElementById('map-overlay-info').textContent = "Select a client in Zone 1 to calculate distance & ETA for field teams.";
-      renderElectricianRoster();
-      renderGeospatialMap();
+      techSelectDropdown.disabled = true;
+      techSelectDropdown.value = "";
     }
     dispatchBtn.disabled = true; // Dispatch button stays disabled until a tech is clicked
+  });
+
+  const techSelectDropdown = document.getElementById('tech-select-dropdown');
+  techSelectDropdown.addEventListener('change', (e) => {
+    selectedElectricianId = e.target.value || null;
+    if (activeLiftProfile && selectedIssuePriority && selectedElectricianId) {
+      dispatchBtn.disabled = false;
+    } else {
+      dispatchBtn.disabled = true;
+    }
   });
 
   dispatchBtn.addEventListener('click', handleSmartDispatch);
@@ -387,6 +397,8 @@ function setupEventListeners() {
       document.getElementById('asset-profile-card').classList.add('hidden');
       document.getElementById('issue-dropdown').disabled = true;
       document.getElementById('assign-dispatch-btn').disabled = true;
+      document.getElementById('tech-select-dropdown').disabled = true;
+      document.getElementById('tech-select-dropdown').value = "";
       document.getElementById('phone-search').value = "";
       renderAll();
     }
@@ -408,6 +420,8 @@ function handlePhoneSearch(phoneQuery) {
     card.classList.add('hidden');
     issueDropdown.disabled = true;
     dispatchBtn.disabled = true;
+    document.getElementById('tech-select-dropdown').disabled = true;
+    document.getElementById('tech-select-dropdown').value = "";
     activeClientProfile = null;
     activeLiftProfile = null;
     return;
@@ -438,9 +452,8 @@ function handlePhoneSearch(phoneQuery) {
   // Require manual technician selection
   selectedElectricianId = null;
   dispatchBtn.disabled = true;
-  document.getElementById('map-overlay-info').innerHTML = "👉 <strong>Select a Free Technician (Green Dot)</strong> from the map or roster list to assign.";
-
-  renderGeospatialMap();
+  document.getElementById('tech-select-dropdown').disabled = true;
+  document.getElementById('tech-select-dropdown').value = "";
 }
 
 function autoPickNearestFreeTech(lift) {
@@ -469,186 +482,32 @@ function autoPickNearestFreeTech(lift) {
 }
 
 /* ==========================================================================
-   ZONE 2: MAP & ROSTER RENDERER
+   ZONE 2: TECH DROPDOWN & STATUS
    ========================================================================== */
-function renderElectricianRoster() {
-  const rosterContainer = document.getElementById('electrician-roster-list');
-  rosterContainer.innerHTML = "";
-
-  appState.Electricians.forEach(tech => {
-    const card = document.createElement('div');
-    card.className = `tech-card ${selectedElectricianId === tech.Electrician_ID ? 'selected' : ''}`;
-    
-    // Calculate distance if lift is selected
-    let distStr = "";
-    if (activeLiftProfile && tech.GPS && activeLiftProfile.x) {
-      const distUnits = Math.hypot(tech.GPS.x - activeLiftProfile.x, tech.GPS.y - activeLiftProfile.y);
-      const miles = (distUnits / 60).toFixed(1);
-      const mins = Math.max(3, Math.round(distUnits / 12));
-      distStr = `<span class="dist-badge">📍 ${miles} mi (${mins}m ETA)</span>`;
+function populateTechDropdown() {
+  const dropdown = document.getElementById('tech-select-dropdown');
+  if (!dropdown) return;
+  
+  dropdown.innerHTML = `<option value="">-- Select Free Technician --</option>`;
+  const freeTechs = appState.Electricians.filter(e => e.Status === 'Free');
+  
+  freeTechs.forEach(tech => {
+    const opt = document.createElement('option');
+    opt.value = tech.Electrician_ID;
+    opt.textContent = `👷 ${tech.Name} (ID: ${tech.Electrician_ID})`;
+    if (tech.Electrician_ID === selectedElectricianId) {
+      opt.selected = true;
     }
-
-    card.innerHTML = `
-      <div class="tech-card-header">
-        <span class="tech-name">${tech.Name}</span>
-        <i class="status-dot ${tech.Status.replace(/\s+/g, '')}"></i>
-      </div>
-      <div class="tech-meta">
-        <span>ID: ${tech.Electrician_ID} • ${tech.Status}</span>
-        <span>📞 ${tech.Phone}</span>
-        ${distStr}
-      </div>
-    `;
-
-    if (tech.Status === 'Free') {
-      card.addEventListener('click', () => {
-        selectedElectricianId = tech.Electrician_ID;
-        renderElectricianRoster();
-        renderGeospatialMap();
-        
-        // Enable dispatch button if we have client and issue
-        const dispatchBtn = document.getElementById('assign-dispatch-btn');
-        if (activeLiftProfile && selectedIssuePriority) {
-          dispatchBtn.disabled = false;
-        }
-
-        // Update map overlay info to show ETA
-        if (activeLiftProfile && tech.GPS) {
-          const distUnits = Math.hypot(tech.GPS.x - activeLiftProfile.x, tech.GPS.y - activeLiftProfile.y);
-          const miles = (distUnits / 60).toFixed(1);
-          const mins = Math.max(3, Math.round(distUnits / 12));
-          document.getElementById('map-overlay-info').innerHTML = `👷 Selected Technician: <strong>${tech.Name}</strong> is <strong>${miles} miles</strong> away (<strong>${mins}m ETA</strong>). Ready for dispatch.`;
-        }
-      });
-    }
-
-    rosterContainer.appendChild(card);
+    dropdown.appendChild(opt);
   });
 }
 
+function renderElectricianRoster() {
+  populateTechDropdown();
+}
+
 function renderGeospatialMap() {
-  const svg = document.getElementById('geospatial-map');
-  svg.innerHTML = "";
-
-  // 1. Draw Grid Lines & Streets
-  for (let i = 40; i < 650; i += 60) {
-    const vline = document.createElementNS("http://www.w3.org/2000/svg", "line");
-    vline.setAttribute("x1", i); vline.setAttribute("y1", 0);
-    vline.setAttribute("x2", i); vline.setAttribute("y2", 320);
-    vline.setAttribute("stroke", "rgba(255,255,255,0.04)"); vline.setAttribute("stroke-width", "1");
-    svg.appendChild(vline);
-  }
-  for (let j = 40; j < 320; j += 60) {
-    const hline = document.createElementNS("http://www.w3.org/2000/svg", "line");
-    hline.setAttribute("x1", 0); hline.setAttribute("y1", j);
-    hline.setAttribute("x2", 650); hline.setAttribute("y2", j);
-    hline.setAttribute("stroke", "rgba(255,255,255,0.04)"); hline.setAttribute("stroke-width", "1");
-    svg.appendChild(hline);
-  }
-
-  // 2. Draw Route Line if activeLift & selectedElectrician
-  if (activeLiftProfile && selectedElectricianId) {
-    const tech = appState.Electricians.find(e => e.Electrician_ID === selectedElectricianId);
-    if (tech && tech.GPS && activeLiftProfile.x) {
-      const route = document.createElementNS("http://www.w3.org/2000/svg", "line");
-      route.setAttribute("x1", tech.GPS.x); route.setAttribute("y1", tech.GPS.y);
-      route.setAttribute("x2", activeLiftProfile.x); route.setAttribute("y2", activeLiftProfile.y);
-      route.setAttribute("stroke", "#3b82f6"); route.setAttribute("stroke-width", "2.5");
-      route.setAttribute("stroke-dasharray", "6,6");
-      svg.appendChild(route);
-    }
-  }
-
-  // 3. Draw All Lifts
-  appState.Lifts.forEach(lift => {
-    const lx = lift.x || 200;
-    const ly = lift.y || 150;
-    const isSelected = activeLiftProfile && activeLiftProfile.Lift_ID === lift.Lift_ID;
-    const hasOpenTicket = appState.Tickets.some(t => t.Lift_ID === lift.Lift_ID && t.Status !== 'Closed');
-
-    const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    
-    // Pulse circle if active/emergency
-    if (isSelected || hasOpenTicket) {
-      const pulse = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-      pulse.setAttribute("cx", lx); pulse.setAttribute("cy", ly);
-      pulse.setAttribute("r", "16");
-      pulse.setAttribute("fill", isSelected ? "rgba(59, 130, 246, 0.25)" : "rgba(239, 68, 68, 0.25)");
-      group.appendChild(pulse);
-    }
-
-    const pin = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-    pin.setAttribute("x", lx - 6); pin.setAttribute("y", ly - 6);
-    pin.setAttribute("width", "12"); pin.setAttribute("height", "12");
-    pin.setAttribute("rx", "2");
-    pin.setAttribute("fill", isSelected ? "#3b82f6" : hasOpenTicket ? "#ef4444" : "#64748b");
-    pin.setAttribute("transform", `rotate(45 ${lx} ${ly})`);
-    group.appendChild(pin);
-
-    const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    label.setAttribute("x", lx); label.setAttribute("y", ly - 14);
-    label.setAttribute("fill", "#fff"); label.setAttribute("font-size", "10"); label.setAttribute("font-weight", "600");
-    label.setAttribute("text-anchor", "middle");
-    label.textContent = lift.Lift_ID;
-    group.appendChild(label);
-
-    svg.appendChild(group);
-  });
-
-  // 4. Draw All Electricians
-  appState.Electricians.forEach(tech => {
-    const tx = tech.GPS?.x || 150;
-    const ty = tech.GPS?.y || 150;
-    const isSelected = selectedElectricianId === tech.Electrician_ID;
-
-    const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
-
-    if (isSelected) {
-      const outerRing = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-      outerRing.setAttribute("cx", tx); outerRing.setAttribute("cy", ty); outerRing.setAttribute("r", "14");
-      outerRing.setAttribute("fill", "none"); outerRing.setAttribute("stroke", "#10b981"); outerRing.setAttribute("stroke-width", "2");
-      group.appendChild(outerRing);
-    }
-
-    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-    circle.setAttribute("cx", tx); circle.setAttribute("cy", ty); circle.setAttribute("r", "8");
-    circle.setAttribute("fill", tech.Status === 'Free' ? "#10b981" : tech.Status === 'On Job' ? "#f59e0b" : "#ef4444");
-    group.appendChild(circle);
-
-    const nameLbl = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    nameLbl.setAttribute("x", tx); nameLbl.setAttribute("y", ty + 20);
-    nameLbl.setAttribute("fill", "#94a3b8"); nameLbl.setAttribute("font-size", "9"); nameLbl.setAttribute("font-weight", "500");
-    nameLbl.setAttribute("text-anchor", "middle");
-    nameLbl.textContent = tech.Name.split(' ')[0];
-    group.appendChild(nameLbl);
-
-    if (tech.Status === 'Free') {
-      group.style.cursor = 'pointer';
-      group.addEventListener('click', () => {
-        selectedElectricianId = tech.Electrician_ID;
-        renderElectricianRoster();
-        renderGeospatialMap();
-
-        const dispatchBtn = document.getElementById('assign-dispatch-btn');
-        if (activeLiftProfile && selectedIssuePriority) {
-          dispatchBtn.disabled = false;
-        }
-
-        let distOverlayStr = "";
-        if (activeLiftProfile && activeLiftProfile.x) {
-          const distUnits = Math.hypot(tx - activeLiftProfile.x, ty - activeLiftProfile.y);
-          const miles = (distUnits / 60).toFixed(1);
-          const mins = Math.max(3, Math.round(distUnits / 12));
-          distOverlayStr = `👷 Selected Technician: <strong>${tech.Name}</strong> is <strong>${miles} miles</strong> away (<strong>${mins}m ETA</strong>). Ready for dispatch.`;
-        } else {
-          distOverlayStr = `👷 Selected Technician: <strong>${tech.Name}</strong>. Select a client in Zone 1 to calculate ETA.`;
-        }
-        document.getElementById('map-overlay-info').innerHTML = distOverlayStr;
-      });
-    }
-
-    svg.appendChild(group);
-  });
+  // Map removed per user request
 }
 
 /* ==========================================================================
@@ -805,6 +664,8 @@ async function handleSmartDispatch() {
   document.getElementById('issue-dropdown').value = "";
   document.getElementById('profile-priority-display').textContent = "-- Select Issue --";
   document.getElementById('assign-dispatch-btn').disabled = true;
+  document.getElementById('tech-select-dropdown').disabled = true;
+  document.getElementById('tech-select-dropdown').value = "";
 
   renderAll();
   
