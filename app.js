@@ -148,15 +148,20 @@ function setupEventListeners() {
     if (selectedIssuePriority) {
       priDisplay.textContent = `${selectedIssuePriority} (${e.target.value})`;
       priDisplay.className = `detail-value priority-display ${selectedIssuePriority === 'P1' ? 'p1-alert' : ''}`;
-      // Enable or auto-pick nearest electrician
-      if (activeLiftProfile) {
-        autoPickNearestFreeTech(activeLiftProfile);
-        dispatchBtn.disabled = false;
-      }
+      
+      // Manual selection flow: clear selected technician and prompt manual pick
+      selectedElectricianId = null;
+      document.getElementById('map-overlay-info').innerHTML = "👉 <strong>Select a Free Technician (Green Dot)</strong> from the map or roster list to assign.";
+      renderElectricianRoster();
+      renderGeospatialMap();
     } else {
       priDisplay.textContent = "-- Select Issue --";
-      dispatchBtn.disabled = true;
+      selectedElectricianId = null;
+      document.getElementById('map-overlay-info').textContent = "Select a client in Zone 1 to calculate distance & ETA for field teams.";
+      renderElectricianRoster();
+      renderGeospatialMap();
     }
+    dispatchBtn.disabled = true; // Dispatch button stays disabled until a tech is clicked
   });
 
   dispatchBtn.addEventListener('click', handleSmartDispatch);
@@ -430,11 +435,10 @@ function handlePhoneSearch(phoneQuery) {
   card.classList.remove('hidden');
   issueDropdown.disabled = false;
 
-  // If issue is already selected, auto pick tech
-  if (issueDropdown.value) {
-    autoPickNearestFreeTech(lift);
-    dispatchBtn.disabled = false;
-  }
+  // Require manual technician selection
+  selectedElectricianId = null;
+  dispatchBtn.disabled = true;
+  document.getElementById('map-overlay-info').innerHTML = "👉 <strong>Select a Free Technician (Green Dot)</strong> from the map or roster list to assign.";
 
   renderGeospatialMap();
 }
@@ -501,6 +505,20 @@ function renderElectricianRoster() {
         selectedElectricianId = tech.Electrician_ID;
         renderElectricianRoster();
         renderGeospatialMap();
+        
+        // Enable dispatch button if we have client and issue
+        const dispatchBtn = document.getElementById('assign-dispatch-btn');
+        if (activeLiftProfile && selectedIssuePriority) {
+          dispatchBtn.disabled = false;
+        }
+
+        // Update map overlay info to show ETA
+        if (activeLiftProfile && tech.GPS) {
+          const distUnits = Math.hypot(tech.GPS.x - activeLiftProfile.x, tech.GPS.y - activeLiftProfile.y);
+          const miles = (distUnits / 60).toFixed(1);
+          const mins = Math.max(3, Math.round(distUnits / 12));
+          document.getElementById('map-overlay-info').innerHTML = `👷 Selected Technician: <strong>${tech.Name}</strong> is <strong>${miles} miles</strong> away (<strong>${mins}m ETA</strong>). Ready for dispatch.`;
+        }
       });
     }
 
@@ -603,6 +621,31 @@ function renderGeospatialMap() {
     nameLbl.setAttribute("text-anchor", "middle");
     nameLbl.textContent = tech.Name.split(' ')[0];
     group.appendChild(nameLbl);
+
+    if (tech.Status === 'Free') {
+      group.style.cursor = 'pointer';
+      group.addEventListener('click', () => {
+        selectedElectricianId = tech.Electrician_ID;
+        renderElectricianRoster();
+        renderGeospatialMap();
+
+        const dispatchBtn = document.getElementById('assign-dispatch-btn');
+        if (activeLiftProfile && selectedIssuePriority) {
+          dispatchBtn.disabled = false;
+        }
+
+        let distOverlayStr = "";
+        if (activeLiftProfile && activeLiftProfile.x) {
+          const distUnits = Math.hypot(tx - activeLiftProfile.x, ty - activeLiftProfile.y);
+          const miles = (distUnits / 60).toFixed(1);
+          const mins = Math.max(3, Math.round(distUnits / 12));
+          distOverlayStr = `👷 Selected Technician: <strong>${tech.Name}</strong> is <strong>${miles} miles</strong> away (<strong>${mins}m ETA</strong>). Ready for dispatch.`;
+        } else {
+          distOverlayStr = `👷 Selected Technician: <strong>${tech.Name}</strong>. Select a client in Zone 1 to calculate ETA.`;
+        }
+        document.getElementById('map-overlay-info').innerHTML = distOverlayStr;
+      });
+    }
 
     svg.appendChild(group);
   });
