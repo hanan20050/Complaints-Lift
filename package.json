@@ -1,0 +1,27 @@
+{
+  "name": "lift-maintenance-architecture",
+  "version": "1.0.0",
+  "description": "Centralized Lift Maintenance & Automated SMS Dispatch System for Solo Managers",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "lift",
+    "dispatch",
+    "maintenance",
+    "sms",
+    "architecture",
+    "render"
+  ],
+  "author": "Antigravity AI",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

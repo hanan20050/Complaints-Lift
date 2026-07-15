@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LIFT-OS | Centralized Dispatch & Automated SMS Framework</title>
+  <meta name="description" content="Minimum-clicks centralized lift maintenance dashboard and automated two-way SMS engine for solo managers.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="index.css">
+</head>
+<body class="dark-mode">
+  <div class="app-container">
+    
+    <!-- HEADER BAR -->
+    <header class="top-bar">
+      <div class="logo-section">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            <path d="M6 8V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v3"/>
+          </svg>
+        </div>
+        <div class="logo-text">
+          <h1>LIFT-OS <span>DISPATCH</span></h1>
+          <p>Solo-Manager Centralized Architecture • v1.0 (Render Ready)</p>
+        </div>
+      </div>
+
+      <div class="status-metrics">
+        <div class="metric-badge critical">
+          <span class="pulse-dot red"></span>
+          <div class="metric-info">
+            <span class="metric-label">Active P1 Emergency</span>
+            <span class="metric-value" id="stat-p1-count">0</span>
+          </div>
+        </div>
+        <div class="metric-badge">
+          <span class="pulse-dot green"></span>
+          <div class="metric-info">
+            <span class="metric-label">Free Electricians</span>
+            <span class="metric-value" id="stat-free-techs">2 / 4</span>
+          </div>
+        </div>
+        <div class="metric-badge">
+          <div class="metric-info">
+            <span class="metric-label">Open Tickets</span>
+            <span class="metric-value" id="stat-open-tickets">1</span>
+          </div>
+        </div>
+        <div class="metric-badge system-status">
+          <span class="status-pill online" id="server-status-pill">● Render Sync Active</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- MAIN DASHBOARD GRID -->
+    <main class="dashboard-grid">
+      
+      <!-- LEFT WORKSPACE COLUMN -->
+      <section class="workspace-column">
+        
+        <!-- ZONE 1: RAPID INTAKE & TRIAGE -->
+        <div class="zone-card zone-intake">
+          <div class="zone-header">
+            <div class="zone-title">
+              <span class="zone-number">ZONE 1</span>
+              <h2>Rapid Intake & Triage (Minimum Clicks)</h2>
+            </div>
+            <span class="philosophy-tag">⚡ Auto-Fill Engine</span>
+          </div>
+
+          <div class="intake-form-grid">
+            <!-- Search & Caller Identity -->
+            <div class="input-group search-group">
+              <label for="phone-search">Caller Phone Search (Or Quick Select)</label>
+              <div class="search-input-wrapper">
+                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input type="text" id="phone-search" placeholder="Enter phone e.g. 555-0200..." autocomplete="off">
+                <select id="quick-client-select" class="quick-dropdown">
+                  <option value="">⚡ Quick Caller Demo...</option>
+                  <option value="555-0200">📞 Highrise Apts (555-0200) - 3rd-Party</option>
+                  <option value="555-0100">📞 Acme Corp HQ (555-0100) - Internal</option>
+                  <option value="555-0300">📞 Metro Mall (555-0300) - 3rd-Party</option>
+                  <option value="555-0400">📞 City Library (555-0400) - Internal</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Issue Triage & Priority Assignment -->
+            <div class="input-group triage-group">
+              <label for="issue-dropdown">Issue Category (Auto-Priority Engine)</label>
+              <select id="issue-dropdown" class="issue-select" disabled>
+                <option value="">-- Select Issue First --</option>
+                <option value="Passenger Trapped" data-priority="P1">🚨 Passenger Trapped (Priority 1 - Immediate)</option>
+                <option value="Lift Stopped - Empty" data-priority="P2">⚠️ Lift Stopped (No Passengers) (Priority 2 - High)</option>
+                <option value="Button / Sensor Fault" data-priority="P3">🔧 Button / Sensor Broken (Priority 3 - Medium)</option>
+                <option value="Routine Inspection" data-priority="P4">📋 Routine Maintenance (Priority 4 - Standard)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Auto-Filled Asset Profile Card -->
+          <div id="asset-profile-card" class="asset-profile-card hidden">
+            <div class="asset-header">
+              <div class="client-name-box">
+                <h3 id="profile-client-name">Highrise Apts</h3>
+                <p id="profile-client-phone">Phone: 555-0200</p>
+              </div>
+              <div class="asset-badges">
+                <span id="profile-ownership-badge" class="badge ownership-badge third-party">3rd-Party Contract (Billable)</span>
+                <span id="profile-sla-badge" class="badge sla-badge">SLA Tier: P1 Gold</span>
+              </div>
+            </div>
+            <div class="asset-details-grid">
+              <div class="detail-item">
+                <span class="detail-label">Lift Asset ID & Brand</span>
+                <span class="detail-value" id="profile-lift-brand">L-202 • Schindler 3300</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Physical Address</span>
+                <span class="detail-value" id="profile-address">789 Skyline Blvd - Tower A Main</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Assigned Priority Level</span>
+                <span class="detail-value priority-display" id="profile-priority-display">-- Select Issue --</span>
+              </div>
+            </div>
+            <div class="intake-actions">
+              <button id="assign-dispatch-btn" class="btn primary-dispatch-btn" disabled>
+                <span>⚡ Smart Dispatch Nearest Electrician</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ZONE 2: LIVE ELECTRICIAN GEOSPATIAL MAP -->
+        <div class="zone-card zone-map">
+          <div class="zone-header">
+            <div class="zone-title">
+              <span class="zone-number">ZONE 2</span>
+              <h2>Live Electrician Geospatial Map</h2>
+            </div>
+            <div class="map-legend">
+              <span class="legend-item"><i class="dot green"></i> Free (Ready)</span>
+              <span class="legend-item"><i class="dot yellow"></i> On Job</span>
+              <span class="legend-item"><i class="dot red"></i> Off Duty</span>
+              <span class="legend-item"><i class="pin blue"></i> Lift Asset</span>
+            </div>
+          </div>
+
+          <div class="map-container-wrapper">
+            <div class="canvas-map-box">
+              <!-- SVG Interactive City Map -->
+              <svg id="geospatial-map" viewBox="0 0 650 320" class="map-svg">
+                <!-- Grid background & streets generated via JS/CSS -->
+              </svg>
+              <div class="map-overlay-info" id="map-overlay-info">
+                <span>Select a client in Zone 1 to calculate distance & ETA for field teams.</span>
+              </div>
+            </div>
+
+            <!-- Field Team Roster Cards -->
+            <div class="electrician-roster" id="electrician-roster-list">
+              <!-- Dynamically populated via JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- ZONE 3: ACTIVE QUEUE -->
+        <div class="zone-card zone-queue">
+          <div class="zone-header">
+            <div class="zone-title">
+              <span class="zone-number">ZONE 3</span>
+              <h2>Active Queue (Ordered strictly by SLA Urgency)</h2>
+            </div>
+            <span class="queue-meta" id="queue-total-label">1 Active Ticket</span>
+          </div>
+
+          <div class="tickets-queue-list" id="tickets-queue-list">
+            <!-- Dynamically populated via JS -->
+          </div>
+        </div>
+
+      </section>
+
+      <!-- RIGHT SIDEBAR: AUTOMATED SMS ENGINE & DATABASE INSPECTOR -->
+      <aside class="sidebar-column">
+        
+        <!-- SMS HANDSHAKE & CELLULAR SIMULATOR -->
+        <div class="simulator-panel zone-card">
+          <div class="zone-header">
+            <div class="zone-title">
+              <span class="zone-number">SMS ENGINE</span>
+              <h2>Two-Way Gateway Simulator</h2>
+            </div>
+            <div class="toggle-tabs">
+              <button class="tab-btn active" data-tab="consumer">Consumer SMS</button>
+              <button class="tab-btn" data-tab="electrician">Electrician Tech</button>
+            </div>
+          </div>
+
+          <!-- CONSUMER PHONE SCREEN -->
+          <div id="tab-consumer" class="phone-screen-container active">
+            <div class="phone-frame">
+              <div class="phone-notch"></div>
+              <div class="phone-header">
+                <span>💬 SMS Gateway</span>
+                <span>To: Consumer Phone</span>
+              </div>
+              <div class="chat-messages" id="consumer-chat-log">
+                <div class="message system-msg">Automated SMS gateway initialized. Waiting for dispatch triggers...</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ELECTRICIAN TECH SCREEN & DEAD ZONE CONTROLLER -->
+          <div id="tab-electrician" class="phone-screen-container hidden">
+            <div class="deadzone-controller">
+              <label class="toggle-switch-label">
+                <span>Cellular Signal State:</span>
+                <button id="deadzone-toggle-btn" class="signal-btn online">
+                  <span class="signal-icon">📡</span>
+                  <span id="signal-text">Connected (Strong Signal)</span>
+                </button>
+              </label>
+              <p class="deadzone-desc">Click button to simulate <strong>Cellular Dead Zone</strong> (e.g. underground motor shaft). Outgoing SMS "DONE" will be cached locally and sent automatically upon signal recovery.</p>
+            </div>
+
+            <div class="phone-frame tech-phone">
+              <div class="phone-notch"></div>
+              <div class="phone-header tech-header">
+                <span>📱 Field Tech Console</span>
+                <span id="tech-active-name">Sarah Connor (E-301)</span>
+              </div>
+              
+              <div class="chat-messages tech-chat" id="electrician-chat-log">
+                <div class="message system-msg">No active job assigned. Ready for dispatch payload.</div>
+              </div>
+
+              <!-- Remote Resolution & Billing Form -->
+              <div class="resolution-form hidden" id="resolution-form">
+                <div class="res-header">
+                  <h4>Step 6: Remote Resolution & Billing</h4>
+                  <span class="badge" id="res-ownership-type">3rd-Party Lift</span>
+                </div>
+                
+                <div class="form-group">
+                  <label>Log Parts Used (For Automatic Billing Calculation):</label>
+                  <select id="res-parts-select" class="parts-select">
+                    <option value="">-- Add Part Used --</option>
+                  </select>
+                  <div class="selected-parts-list" id="selected-parts-list"></div>
+                </div>
+
+                <div class="form-group">
+                  <label>Resolution Notes / Schematics:</label>
+                  <input type="text" id="res-notes-input" placeholder="e.g. Replaced door optical sensor..." value="Sensor realigned and tested ok.">
+                </div>
+
+                <button id="res-send-done-btn" class="btn res-submit-btn">
+                  <span>📩 Text "DONE [Ticket_ID]" to Gateway</span>
+                </button>
+                <div id="res-cache-notice" class="cache-notice hidden">
+                  ⚠️ Offline! SMS cached on device. Reconnect signal to auto-transmit.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DATABASE INSPECTOR PANEL -->
+        <div class="db-inspector-panel zone-card">
+          <div class="zone-header">
+            <div class="zone-title">
+              <span class="zone-number">DB TABLES</span>
+              <h2>Core Relational Database</h2>
+            </div>
+          </div>
+          <div class="db-tabs">
+            <button class="db-tab active" data-table="Clients">Clients (4)</button>
+            <button class="db-tab" data-table="Lifts">Lifts (4)</button>
+            <button class="db-tab" data-table="Electricians">Field Teams (4)</button>
+            <button class="db-tab" data-table="Tickets">Tickets (1)</button>
+            <button class="db-tab" data-table="Parts_Inventory">Inventory (5)</button>
+          </div>
+          <div class="db-table-wrapper">
+            <table class="db-table" id="db-inspector-table">
+              <thead>
+                <tr id="db-table-headers"></tr>
+              </thead>
+              <tbody id="db-table-body"></tbody>
+            </table>
+          </div>
+          <div class="db-footer">
+            <button id="reset-db-btn" class="btn secondary-btn">🔄 Reset Demo Database</button>
+          </div>
+        </div>
+
+      </aside>
+
+    </main>
+
+  </div>
+
+  <!-- BILLING ALERT MODAL FOR 3RD-PARTY LIFTS -->
+  <div id="billing-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span class="modal-icon">💰</span>
+        <h3>3rd-Party Lift Billing Alert Triggered</h3>
+      </div>
+      <div class="modal-body">
+        <p class="modal-intro">Ticket <strong id="modal-ticket-id">#TKT-000</strong> has been resolved. Since this is an external <strong>3rd-Party Contract</strong>, immediate dynamic billing has been calculated:</p>
+        <div class="billing-breakdown">
+          <div class="billing-row">
+            <span>Client:</span>
+            <span id="modal-client-name" class="font-semibold">Highrise Apts</span>
+          </div>
+          <div class="billing-row">
+            <span>Lift Asset:</span>
+            <span id="modal-lift-brand">Schindler 3300</span>
+          </div>
+          <div class="billing-row divider">
+            <span>Standard Service Labor:</span>
+            <span>$250.00</span>
+          </div>
+          <div id="modal-parts-list" class="parts-billed-container"></div>
+          <div class="billing-row total-row">
+            <span>Total Billable Amount:</span>
+            <span id="modal-total-amount" class="total-badge">$250.00</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="close-modal-btn" class="btn primary-btn">Generate Invoice & Archive Ticket</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
