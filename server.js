@@ -20,10 +20,10 @@ const INITIAL_SEED_DB = {
     { Client_ID: "C-104", Name: "Giga Mall", Phone_Number: "+923034130621", Billing_Address: "DHA Phase 2, GT Road, Rawalpindi" }
   ],
   Lifts: [
-    { Lift_ID: "L-201", Client_ID: "C-101", Ownership_Type: "Internal", Brand: "Otis Gen2", Address: "HBL Tower Karachi - Shaft A", SLA_Tier: "P2", x: 140, y: 80 },
-    { Lift_ID: "L-202", Client_ID: "C-102", Ownership_Type: "3rd-Party", Brand: "Schindler 3300", Address: "Centaurus Mall Islamabad - Atrium 2", SLA_Tier: "P1", x: 480, y: 130 },
-    { Lift_ID: "L-203", Client_ID: "C-103", Ownership_Type: "3rd-Party", Brand: "Kone MonoSpace", Address: "Packages Mall Lahore - Main Entrance", SLA_Tier: "P1", x: 380, y: 250 },
-    { Lift_ID: "L-204", Client_ID: "C-104", Ownership_Type: "Internal", Brand: "Thyssenkrupp Synergy", Address: "Giga Mall Rawalpindi - South Tower", SLA_Tier: "P3", x: 210, y: 230 }
+    { Lift_ID: "L-201", Client_ID: "C-101", Ownership_Type: "Internal", Brand: "Otis Gen2", Address: "HBL Tower Karachi - Shaft A", SLA_Tier: "P2", Gate_Code: "9901#", x: 140, y: 80 },
+    { Lift_ID: "L-202", Client_ID: "C-102", Ownership_Type: "3rd-Party", Brand: "Schindler 3300", Address: "Centaurus Mall Islamabad - Atrium 2", SLA_Tier: "P1", Gate_Code: "7722", x: 480, y: 130 },
+    { Lift_ID: "L-203", Client_ID: "C-103", Ownership_Type: "3rd-Party", Brand: "Kone MonoSpace", Address: "Packages Mall Lahore - Main Entrance", SLA_Tier: "P1", Gate_Code: "8899*", x: 380, y: 250 },
+    { Lift_ID: "L-204", Client_ID: "C-104", Ownership_Type: "Internal", Brand: "Thyssenkrupp Synergy", Address: "Giga Mall Rawalpindi - South Tower", SLA_Tier: "P3", Gate_Code: "None", x: 210, y: 230 }
   ],
   Electricians: [
     { Electrician_ID: "E-301", Name: "Muhammad Ali", Phone: "+923034130621", Status: "Free", GPS: { x: 180, y: 220, lat: 24.8607, lng: 67.0011 } },

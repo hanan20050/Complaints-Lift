@@ -102,13 +102,7 @@
               </select>
             </div>
 
-            <!-- Manual Technician Selection Dropbox -->
-            <div class="input-group tech-group">
-              <label for="tech-select-dropdown">Assign Technician (Manual Selection)</label>
-              <select id="tech-select-dropdown" class="issue-select" disabled>
-                <option value="">-- Select Free Technician --</option>
-              </select>
-            </div>
+
           </div>
 
           <!-- Auto-Filled Asset Profile Card -->
@@ -145,6 +139,24 @@
           </div>
         </div>
 
+        <!-- ZONE 2: LIVE ELECTRICIAN MAP (GEOSPATIAL) -->
+        <div class="zone-card zone-map">
+          <div class="zone-header">
+            <div class="zone-title">
+              <span class="zone-number">ZONE 2</span>
+              <h2>Live Electrician Map & Smart Dispatch</h2>
+            </div>
+            <span class="philosophy-tag">📍 Distance-Based</span>
+          </div>
+          
+          <div class="map-container-wrapper">
+            <div class="canvas-map-box">
+              <svg class="map-svg" id="geo-map"></svg>
+              <div class="map-overlay-info" id="map-overlay-info">Initializing GPS...</div>
+            </div>
+            <div class="electrician-roster" id="electrician-roster"></div>
+          </div>
+        </div>
 
         <!-- ZONE 3: ACTIVE QUEUE -->
         <div class="zone-card zone-queue">

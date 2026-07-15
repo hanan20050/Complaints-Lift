@@ -480,11 +480,177 @@ function populateTechDropdown() {
 }
 
 function renderElectricianRoster() {
-  populateTechDropdown();
+  const rosterContainer = document.getElementById('electrician-roster');
+  if (!rosterContainer) return;
+  rosterContainer.innerHTML = "";
+
+  appState.Electricians.forEach(tech => {
+    const card = document.createElement('div');
+    card.className = `tech-card ${selectedElectricianId === tech.Electrician_ID ? 'selected' : ''}`;
+    if (tech.Status === 'Free') {
+      card.style.cursor = 'pointer';
+    } else {
+      card.style.opacity = '0.6';
+    }
+    
+    card.innerHTML = `
+      <div class="tech-card-header">
+        <span class="tech-name">👷 ${tech.Name.split(' ')[0]}</span>
+        <span class="status-dot ${tech.Status.replace(' ', '')}" title="${tech.Status}"></span>
+      </div>
+      <div style="font-size: 0.75rem; color: var(--text-dim);">${tech.Status}</div>
+    `;
+
+    if (tech.Status === 'Free') {
+      card.addEventListener('click', () => {
+        selectedElectricianId = tech.Electrician_ID;
+        renderElectricianRoster();
+        renderGeospatialMap();
+        
+        // Enable dispatch button if we have client and issue
+        const dispatchBtn = document.getElementById('assign-dispatch-btn');
+        if (activeLiftProfile && selectedIssuePriority) {
+          dispatchBtn.disabled = false;
+        }
+
+        // Update map overlay info to show ETA
+        if (activeLiftProfile && tech.GPS) {
+          const distUnits = Math.hypot(tech.GPS.x - activeLiftProfile.x, tech.GPS.y - activeLiftProfile.y);
+          const miles = (distUnits / 60).toFixed(1);
+          const mins = Math.max(3, Math.round(distUnits / 12));
+          document.getElementById('map-overlay-info').innerHTML = `👷 Selected Technician: <strong>${tech.Name}</strong> is <strong>${miles} miles</strong> away (<strong>${mins}m ETA</strong>). Ready for dispatch.`;
+        }
+      });
+    }
+
+    rosterContainer.appendChild(card);
+  });
 }
 
 function renderGeospatialMap() {
-  // Map removed per user request
+  const svg = document.getElementById('geo-map');
+  if (!svg) return;
+  svg.innerHTML = "";
+
+  // 1. Draw Grid Lines & Streets
+  for (let i = 40; i < 650; i += 60) {
+    const vline = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    vline.setAttribute("x1", i); vline.setAttribute("y1", 0);
+    vline.setAttribute("x2", i); vline.setAttribute("y2", 320);
+    vline.setAttribute("stroke", "rgba(0,0,0,0.05)"); vline.setAttribute("stroke-width", "1");
+    svg.appendChild(vline);
+  }
+  for (let j = 40; j < 320; j += 60) {
+    const hline = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    hline.setAttribute("x1", 0); hline.setAttribute("y1", j);
+    hline.setAttribute("x2", 650); hline.setAttribute("y2", j);
+    hline.setAttribute("stroke", "rgba(0,0,0,0.05)"); hline.setAttribute("stroke-width", "1");
+    svg.appendChild(hline);
+  }
+
+  // 2. Draw Route Line if activeLift & selectedElectrician
+  if (activeLiftProfile && selectedElectricianId) {
+    const tech = appState.Electricians.find(e => e.Electrician_ID === selectedElectricianId);
+    if (tech && tech.GPS && activeLiftProfile.x) {
+      const route = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      route.setAttribute("x1", tech.GPS.x); route.setAttribute("y1", tech.GPS.y);
+      route.setAttribute("x2", activeLiftProfile.x); route.setAttribute("y2", activeLiftProfile.y);
+      route.setAttribute("stroke", "#2563eb"); route.setAttribute("stroke-width", "2.5");
+      route.setAttribute("stroke-dasharray", "6,6");
+      svg.appendChild(route);
+    }
+  }
+
+  // 3. Draw All Lifts
+  appState.Lifts.forEach(lift => {
+    const lx = lift.x || 200;
+    const ly = lift.y || 150;
+    const isSelected = activeLiftProfile && activeLiftProfile.Lift_ID === lift.Lift_ID;
+    const hasOpenTicket = appState.Tickets.some(t => t.Lift_ID === lift.Lift_ID && t.Status !== 'Closed');
+
+    const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    
+    // Pulse circle if active/emergency
+    if (isSelected || hasOpenTicket) {
+      const pulse = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      pulse.setAttribute("cx", lx); pulse.setAttribute("cy", ly);
+      pulse.setAttribute("r", "16");
+      pulse.setAttribute("fill", isSelected ? "rgba(37, 99, 235, 0.25)" : "rgba(220, 38, 38, 0.25)");
+      group.appendChild(pulse);
+    }
+
+    const pin = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    pin.setAttribute("x", lx - 6); pin.setAttribute("y", ly - 6);
+    pin.setAttribute("width", "12"); pin.setAttribute("height", "12");
+    pin.setAttribute("rx", "2");
+    pin.setAttribute("fill", isSelected ? "#2563eb" : hasOpenTicket ? "#dc2626" : "#64748b");
+    pin.setAttribute("transform", `rotate(45 ${lx} ${ly})`);
+    group.appendChild(pin);
+
+    const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    label.setAttribute("x", lx); label.setAttribute("y", ly - 14);
+    label.setAttribute("fill", "#0f172a"); label.setAttribute("font-size", "10"); label.setAttribute("font-weight", "600");
+    label.setAttribute("text-anchor", "middle");
+    label.textContent = lift.Lift_ID;
+    group.appendChild(label);
+
+    svg.appendChild(group);
+  });
+
+  // 4. Draw All Electricians
+  appState.Electricians.forEach(tech => {
+    const tx = tech.GPS?.x || 150;
+    const ty = tech.GPS?.y || 150;
+    const isSelected = selectedElectricianId === tech.Electrician_ID;
+
+    const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+
+    if (isSelected) {
+      const outerRing = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      outerRing.setAttribute("cx", tx); outerRing.setAttribute("cy", ty); outerRing.setAttribute("r", "14");
+      outerRing.setAttribute("fill", "none"); outerRing.setAttribute("stroke", "#16a34a"); outerRing.setAttribute("stroke-width", "2");
+      group.appendChild(outerRing);
+    }
+
+    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    circle.setAttribute("cx", tx); circle.setAttribute("cy", ty); circle.setAttribute("r", "8");
+    circle.setAttribute("fill", tech.Status === 'Free' ? "#16a34a" : tech.Status === 'On Job' ? "#d97706" : "#dc2626");
+    group.appendChild(circle);
+
+    const nameLbl = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    nameLbl.setAttribute("x", tx); nameLbl.setAttribute("y", ty + 20);
+    nameLbl.setAttribute("fill", "#475569"); nameLbl.setAttribute("font-size", "9"); nameLbl.setAttribute("font-weight", "500");
+    nameLbl.setAttribute("text-anchor", "middle");
+    nameLbl.textContent = tech.Name.split(' ')[0];
+    group.appendChild(nameLbl);
+
+    if (tech.Status === 'Free') {
+      group.style.cursor = 'pointer';
+      group.addEventListener('click', () => {
+        selectedElectricianId = tech.Electrician_ID;
+        renderElectricianRoster();
+        renderGeospatialMap();
+
+        const dispatchBtn = document.getElementById('assign-dispatch-btn');
+        if (activeLiftProfile && selectedIssuePriority) {
+          dispatchBtn.disabled = false;
+        }
+
+        let distOverlayStr = "";
+        if (activeLiftProfile && activeLiftProfile.x) {
+          const distUnits = Math.hypot(tx - activeLiftProfile.x, ty - activeLiftProfile.y);
+          const miles = (distUnits / 60).toFixed(1);
+          const mins = Math.max(3, Math.round(distUnits / 12));
+          distOverlayStr = `👷 Selected Technician: <strong>${tech.Name}</strong> is <strong>${miles} miles</strong> away (<strong>${mins}m ETA</strong>). Ready for dispatch.`;
+        } else {
+          distOverlayStr = `👷 Selected Technician: <strong>${tech.Name}</strong>. Select a client in Zone 1 to calculate ETA.`;
+        }
+        document.getElementById('map-overlay-info').innerHTML = distOverlayStr;
+      });
+    }
+
+    svg.appendChild(group);
+  });
 }
 
 /* ==========================================================================
@@ -655,8 +821,15 @@ async function handleSmartDispatch() {
   currentActiveTechTicketId = newTicketId;
 
   // FIRE AUTOMATED SMS HANDSHAKE TO SIMULATOR & REAL GATEWAY
-  const consumerMsg = `Automated Dispatch: Lift ticket #${newTicketId} logged for ${activeClientProfile.Name}. Our electrician ${electrician.Name} has been assigned and is en route.`;
-  const techMsg = `NEW JOB DISPATCH [${selectedIssuePriority}]:\nAddress: ${activeLiftProfile.Address}\nLift: ${activeLiftProfile.Ownership_Type} / ${activeLiftProfile.Brand}\nIssue: ${issueText}\nGate Code: #4829`;
+  let etaMins = 15; // default
+  if (electrician.GPS && activeLiftProfile.x) {
+    const distUnits = Math.hypot(electrician.GPS.x - activeLiftProfile.x, electrician.GPS.y - activeLiftProfile.y);
+    etaMins = Math.max(3, Math.round(distUnits / 12));
+  }
+  const gateCode = activeLiftProfile.Gate_Code || "None";
+
+  const consumerMsg = `Lift ticket #${newTicketId} logged. Our electrician is en route. ETA: ${etaMins}m.`;
+  const techMsg = `NEW JOB: P[${selectedIssuePriority}]. Address: ${activeLiftProfile.Address}. Lift: ${activeLiftProfile.Ownership_Type}/${activeLiftProfile.Brand}. Issue: ${issueText}. Gate Code: ${gateCode}.`;
 
   addConsumerMessage(consumerMsg, 'incoming');
   addElectricianMessage(techMsg, 'incoming');
